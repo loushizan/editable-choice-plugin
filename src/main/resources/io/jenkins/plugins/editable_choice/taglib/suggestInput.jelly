@@ -1,0 +1,71 @@
+<!--
+The MIT License
+
+Copyright (c) 2021 IKEDA Yasuyuki
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<st:documentation>
+  Text field with choices are shown.
+  <st:attribute name="name" use="required">
+    The name of the parameter.
+  </st:attribute>
+  <st:attribute name="value" use="optional">
+    The initial value.
+  </st:attribute>
+  <st:attribute name="items" use="required">
+    The list(java Collection object) of selectable values.
+  </st:attribute>
+  <st:attribute name="restrict" use="optional">
+    Restrict to be one of choices
+  </st:attribute>
+  <st:attribute name="filterConfig" use="optional">
+    FilterConfig instance to specify how to filter values.
+  </st:attribute>
+</st:documentation>
+<j:scope>
+  <j:set var="value" value="${attrs.value ?: ''}" />
+  <j:set var="restrict" value="${attrs.restrict ?: false}" />
+  <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.json : null}" />
+
+  <st:adjunct includes="io.jenkins.plugins.editable_choice.taglib.suggestInput" />
+
+  <div class="editable-choice-suggest">
+    <div class="editable-choice-suggest-input-block">
+      <m:input
+        xmlns:m="jelly:hudson.util.jelly.MorphTagLibrary"
+        ATTRIBUTES="${attrs}"
+        EXCEPT="name value items restrict filterConfig"
+        autocomplete="off"
+        name="${attrs.name}"
+        type="text"
+      />
+    </div>
+    <div class="editable-choice-suggest-choices-block">
+      <ul class="editable-choice-suggest-choices" data-filter-config="${filterConfigJson}">
+        <j:forEach var="value" items="${attrs.items}">
+          <li class="editable-choice-suggest-choice" data-value="${value}">${value}</li>
+        </j:forEach>
+      </ul>
+    </div>
+  </div>
+</j:scope>
+</j:jelly>

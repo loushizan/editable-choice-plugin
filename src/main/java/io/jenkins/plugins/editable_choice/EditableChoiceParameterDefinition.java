@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2021 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +30,7 @@ import java.util.List;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
@@ -40,6 +41,7 @@ import hudson.Util;
 import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
+import hudson.util.ComboBoxModel;
 import net.sf.json.JSONObject;
 
 /**
@@ -50,9 +52,11 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
 
     @NonNull
     private List<String> choices = new ArrayList<>();
-    private boolean editable = true;
+    private boolean restrict = false;
     @CheckForNull
     private String defaultValue = null;
+    @CheckForNull
+    private FilterConfig filterConfig = null;
 
     /**
      * ctor
@@ -60,7 +64,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * @param name the name of the parameter
      */
     @DataBoundConstructor
-    public EditableChoiceParameterDefinition(@NonNull String name) {
+    public EditableChoiceParameterDefinition(@NonNull final String name) {
         super(name);
     }
 
@@ -68,7 +72,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * @param choices choices used as candidates
      */
     @DataBoundSetter
-    public void setChoices(@NonNull List<String> choices) {
+    public void setChoices(@NonNull final List<String> choices) {
         this.choices = choices;
     }
 
@@ -82,38 +86,38 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
+     * @param text choices delimited with new lines
+     * @return choices
+     */
+    @NonNull
+    public static List<String> choicesFromText(@NonNull final String text) {
+        return Arrays.asList(text.split("\\r?\\n", -1));
+    }
+
+    /**
      * @param choicesWithText choices with delimited with new lines
      */
     @DataBoundSetter
-    public void setChoicesWithText(@NonNull String choicesWithText) {
-        setChoices(Arrays.asList(choicesWithText.split("\\r?\\n", -1)));
+    public void setChoicesWithText(@NonNull final String choicesWithText) {
+        setChoices(choicesFromText(choicesWithText));
+    }
+
+    @NonNull
+    public String getChoicesWithText() {
+        final StringBuffer sb = new StringBuffer();
+        for (final String s : getChoices()) {
+            sb.append(s);
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 
     /**
-     * @param editable whether the input is editable
+     * @param defaultValue the default value. The top choice is used if
+     *                     {@code null}.
      */
     @DataBoundSetter
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
-
-    /**
-     * Whether the input is editable and can be a value not in choices.
-     * If <code>false</code>, this works just same as the built in choice parameter.
-     * Defaults to <code>true</code>.
-     *
-     * @return whether the input is editable
-     */
-    @Exported
-    public boolean isEditable() {
-        return editable;
-    }
-
-    /**
-     * @param defaultValue the default value. The top choice is used if {@code null}.
-     */
-    @DataBoundSetter
-    public void setDefaultValue(@CheckForNull String defaultValue) {
+    public void setDefaultValue(@CheckForNull final String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
@@ -127,15 +131,54 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
+     * @return Whether to specify the default value other than the top most value
+     */
+    public boolean isSpecifyDefaultValue() {
+        return getDefaultValue() != null;
+    }
+
+    /**
+     * @param restrict whether restrict value in choices
+     */
+    @DataBoundSetter
+    public void setRestrict(boolean restrict) {
+        this.restrict = restrict;
+    }
+
+    /**
+     * @return whether restrict value in choices
+     */
+    @Exported
+    public boolean isRestrict() {
+        return restrict;
+    }
+
+    /**
+     * @param filterConfig how to filter values for input. {@code null} not to filter.
+     */
+    @DataBoundSetter
+    public void setFilterConfig(@CheckForNull FilterConfig filterConfig) {
+        this.filterConfig = filterConfig;
+    }
+
+    /**
+     * @return how to filter values for input. {@code null} not to filter.
+     */
+    @CheckForNull
+    public FilterConfig getFilterConfig() {
+        return filterConfig;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @CheckForNull
     public ParameterValue getDefaultParameterValue() {
-        String defaultValue = getDefaultValue();
+        final String defaultValue = getDefaultValue();
         if (defaultValue != null) {
             return new StringParameterValue(getName(), defaultValue, getDescription());
         }
-        List<String> choices = getChoices();
+        final List<String> choices = getChoices();
         if (choices.size() <= 0) {
             return null;
         }
@@ -146,8 +189,8 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * @param value candidate input
      * @return whether the value is allowed (e.g. value in choices)
      */
-    protected boolean checkValue(@NonNull String value) {
-        if (isEditable()) {
+    protected boolean checkValue(@NonNull final String value) {
+        if (!isRestrict()) {
             return true;
         }
         return getChoices().contains(value);
@@ -156,32 +199,33 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     /**
      * @param value the user input
      * @return the value of this parameter.
-     * @throws IllegalArgumentException The value is not in choices even not editable.
+     * @throws IllegalArgumentException The value is not in choices even not
+     *                                  editable.
      */
-    protected ParameterValue createValueCommon(StringParameterValue value) throws IllegalArgumentException {
-        if(!checkValue(value.getValue())) {
+    protected ParameterValue createValueCommon(final StringParameterValue value) throws IllegalArgumentException {
+        if (!checkValue(value.getValue())) {
             throw new IllegalArgumentException(
-                Messages.EditableChoiceParameterDefinition_IllegalChoice(
-                    value.getValue(),
-                    value.getName()
-                )
-            );
+                    Messages.EditableChoiceParameterDefinition_IllegalChoice(value.getValue(), value.getName()));
         }
         return value;
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException The value is not in choices when restricted.
+     */
     @Override
-    public ParameterValue createValue(StaplerRequest request, JSONObject jo) throws IllegalArgumentException {
-        StringParameterValue value = request.bindJSON(StringParameterValue.class, jo);
+    public ParameterValue createValue(final StaplerRequest request, final JSONObject jo)
+            throws IllegalArgumentException {
+        final StringParameterValue value = request.bindJSON(StringParameterValue.class, jo);
         value.setDescription(getDescription());
 
         return createValueCommon(value);
     }
 
     /**
-     * @param value the user input
-     * @return the value of this parameter.
-     * @throws IllegalArgumentException The value is not in choices even not editable.
+     * {@inheritDoc}
+     * @throws IllegalArgumentException The value is not in choices when restricted.
      */
     @Override
     public ParameterValue createValue(String value) throws IllegalArgumentException {
@@ -189,12 +233,28 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
         return createValueCommon(new StringParameterValue(getName(), value, getDescription()));
     }
 
+    /**
+     * Descriptor for {@link EditableChoiceParameterDefinition}
+     */
     @Extension
-    @Symbol("choice")
+    @Symbol("editableChoice")
     public static class DescriptorImpl extends ParameterDescriptor {
         @Override
         public String getDisplayName() {
             return Messages.EditableChoiceParameterDefinition_DisplayName();
+        }
+
+        /**
+         * @param choicesWithText choices that the user inputing
+         * @return choices
+         */
+        public ComboBoxModel doFillDefaultValueItems(@CheckForNull @QueryParameter final String choicesWithText) {
+            final ComboBoxModel ret = new ComboBoxModel();
+            if (choicesWithText == null) {
+                return ret;
+            }
+            ret.addAll(choicesFromText(choicesWithText));
+            return ret;
         }
     }
 }

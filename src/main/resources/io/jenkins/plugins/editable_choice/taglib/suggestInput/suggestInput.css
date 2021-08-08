@@ -1,0 +1,4 @@
+.editable-choice-suggest [data-value]:hover {
+    background-color: Highlight;
+    color: HighlightText;
+}
