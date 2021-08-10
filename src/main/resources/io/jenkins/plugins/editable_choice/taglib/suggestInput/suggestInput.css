@@ -1,4 +1,28 @@
-.editable-choice-suggest [data-value]:hover {
-    background-color: Highlight;
-    color: HighlightText;
+.editable-choice-suggest [data-value] {
+  list-style: none;
 }
+
+.editable-choice-suggest [data-value].active {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+.editable-choice-suggest .editable-choice-suggest-choices-block {
+  position: relative;
+}
+
+.editable-choice-suggest .editable-choice-suggest-choices {
+  display: none;
+  position: absolute;
+  width: 100%;
+  border: 1px solid #000;
+  background-color: Canvas;
+  color: CanvasText;
+  margin: 0;
+  padding: 0;
+}
+
+.editable-choice-suggest .editable-choice-suggest-choices.active {
+  display: block;
+}
+

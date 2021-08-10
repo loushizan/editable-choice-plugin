@@ -24,13 +24,89 @@
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.editable-choice-suggest').forEach((e) => {
     const textbox = e.querySelector('.editable-choice-suggest-input-block input[type="text"]');
-    const choices = e.querySelector('.editable-choice-suggest-choices');
+    const choiceContainer = e.querySelector('.editable-choice-suggest-choices');
+    const choices = choiceContainer.querySelectorAll('[data-value]');
+    const choiceState = {
+      'activeIdx': null
+    };
+    const setActive = (idx) => {
+      // set active choice
+      if (choiceState.activeIdx != null) {
+        if (choiceState.activeIdx === idx) {
+          return;
+        }
+        choices[choiceState.activeIdx].classList.remove('active');
+      }
+      choiceState.activeIdx = idx;
+      if (choiceState.activeIdx != null) {
+        choices[choiceState.activeIdx].classList.add('active');
+      }
+    }
+    const setUpperActive = () => {
+      if (choiceState.activeIdx == null || choiceState.activeIdx <= 0) {
+        setActive(choices.length - 1);
+        return;
+      }
+      setActive(choiceState.activeIdx - 1);
+    }
+    const setLowerActive = () => {
+      if (choiceState.activeIdx == null || choiceState.activeIdx >= choices.length - 1) {
+        setActive(0);
+        return;
+      }
+      setActive(choiceState.activeIdx + 1);
+    }
 
     // set up choices behavior
-    choices.querySelectorAll('[data-value]').forEach((e) => {
-      e.addEventListener('click', (e) => {
+    // * activate on mouse over
+    // * enter value when clicking
+    choices.forEach((e, idx) => {
+      e.addEventListener('mouseenter', () => {
+        setActive(idx);
+      });
+      e.addEventListener('click', (evt) => {
+        evt.stopPropagation();
         textbox.value = e.dataset.value;
       })
+    });
+
+    // set up textbox behavir
+    // * focus / blur: toggle display of choices
+    // * inputting texts: filter values
+    // * pressing cursor keys: move active choices
+    // * pressing enter: input the value
+    textbox.addEventListener('focus', () => {
+      choiceContainer.classList.add('active');
+    });
+    textbox.addEventListener('blur', () => {
+      // hiding the block immediately prevents 'click' for choices from firing.
+      setTimeout(
+        () => {
+          choiceContainer.classList.remove('active');
+        },
+        100
+      );
+    });
+    textbox.addEventListener('keydown', (evt) => {
+      switch (evt.keyCode) {
+      case 38: // up
+        setUpperActive();
+        break;
+      case 40: // down
+        setLowerActive();
+        break;
+      case 13: // enter
+        if (choiceState.activeIdx != null) {
+          const newValue = choices[choiceState.activeIdx].dataset.value;
+          if (newValue !== textbox.value) {
+            textbox.value = newValue;
+            // prevent form submit
+            evt.stopPropagation();
+            evt.preventDefault();
+          }
+        }
+        break;
+      }
     });
   });
 });

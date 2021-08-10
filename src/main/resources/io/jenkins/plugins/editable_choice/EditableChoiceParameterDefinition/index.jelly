@@ -32,6 +32,7 @@ THE SOFTWARE.
     <div name="parameter" description="${it.description}">
       <input type="hidden" name="name" value="${it.name}" />
       <mylib:suggestInput
+        class="setting-input"
         name="value"
         default="${it.defaultValue}"
         items="${it.choices}"

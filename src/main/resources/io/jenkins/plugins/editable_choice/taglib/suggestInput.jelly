@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form">
 <st:documentation>
   Text field with choices are shown.
   <st:attribute name="name" use="required">
@@ -46,7 +46,7 @@ THE SOFTWARE.
   <j:set var="restrict" value="${attrs.restrict ?: false}" />
   <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.json : null}" />
 
-  <st:adjunct includes="io.jenkins.plugins.editable_choice.taglib.suggestInput" />
+  <st:adjunct includes="io.jenkins.plugins.editable_choice.taglib.suggestInput.suggestInput" />
 
   <div class="editable-choice-suggest">
     <div class="editable-choice-suggest-input-block">

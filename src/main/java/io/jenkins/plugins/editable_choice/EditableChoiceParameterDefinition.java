@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -77,8 +78,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
-     * 
-     * @return
+     * @return choices
      */
     @Exported
     public List<String> getChoices() {
@@ -91,7 +91,26 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      */
     @NonNull
     public static List<String> choicesFromText(@NonNull final String text) {
-        return Arrays.asList(text.split("\\r?\\n", -1));
+        final List<String> stringList = Arrays.asList(text.split("\\r?\\n", -1));
+        if(stringList.isEmpty() || !StringUtils.isEmpty(stringList.get(stringList.size() - 1))) {
+            return stringList;
+        }
+
+        // Ignore the last empty line
+        final List<String> newList = new ArrayList<>();
+        for (int i = 0; i < stringList.size() - 1; ++i) {
+            newList.add(stringList.get(i));
+        }
+        return newList;
+    }
+
+    public static String textFromChoices(@NonNull final List<String> choices) {
+        final StringBuffer sb = new StringBuffer();
+        for (final String s : choices) {
+            sb.append(s);
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 
     /**
@@ -102,14 +121,12 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
         setChoices(choicesFromText(choicesWithText));
     }
 
+    /**
+     * @return choices with delimited with new lines
+     */
     @NonNull
     public String getChoicesWithText() {
-        final StringBuffer sb = new StringBuffer();
-        for (final String s : getChoices()) {
-            sb.append(s);
-            sb.append('\n');
-        }
-        return sb.toString();
+        return textFromChoices(getChoices());
     }
 
     /**
@@ -131,17 +148,37 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
-     * @return Whether to specify the default value other than the top most value
+     * Set the default value with {@link DefaultValue}.
+     *
+     * Only for used with &lt;f:optionalBlock&gt;.
+     * Use {@link #setDefaultValue()} instead.
+     *
+     * @param defaultValue the default value with {@link DefaultValue}
      */
-    public boolean isSpecifyDefaultValue() {
-        return getDefaultValue() != null;
+    @DataBoundSetter
+    public void setWithDefaultValue(@NonNull final DefaultValue defaultValue) {
+        this.defaultValue = defaultValue.getValue();
+    }
+
+    /**
+     * Returns the default value with {@link DefaultValue}.
+     *
+     * Only for used with &lt;f:optionalBlock&gt;.
+     * Use {@link #getDefaultValue()} instead.
+     *
+     * @return the default value with {@link DefaultValue}
+     */
+    @CheckForNull
+    public DefaultValue getWithDefaultValue() {
+        final String value = getDefaultValue();
+        return (value != null) ? new DefaultValue(value) : null;
     }
 
     /**
      * @param restrict whether restrict value in choices
      */
     @DataBoundSetter
-    public void setRestrict(boolean restrict) {
+    public void setRestrict(final boolean restrict) {
         this.restrict = restrict;
     }
 
@@ -239,6 +276,9 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     @Extension
     @Symbol("editableChoice")
     public static class DescriptorImpl extends ParameterDescriptor {
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public String getDisplayName() {
             return Messages.EditableChoiceParameterDefinition_DisplayName();
