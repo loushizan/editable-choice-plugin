@@ -42,7 +42,7 @@ import hudson.model.Descriptor;
 public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implements Serializable {
     private static final long serialVersionUID = 6989114009969654271L;
 
-    private boolean prefix = true;
+    private boolean prefix = false;
     private boolean caseInsensitive = false;
 
     @DataBoundConstructor

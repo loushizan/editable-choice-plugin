@@ -25,6 +25,7 @@ package io.jenkins.plugins.editable_choice;
 
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -38,23 +39,24 @@ import hudson.model.Descriptor;
 @Restricted(NoExternalUse.class)
 public class DefaultValue extends AbstractDescribableImpl<DefaultValue> {
     @NonNull
-    private final String value;
+    private final String defaultValue;
 
     /**
      * ctor
      *
-     * @param value the default value
+     * @param defaultValue the default value
      */
-    public DefaultValue(@CheckForNull final String value) {
-        this.value = Util.fixNull(value);
+    @DataBoundConstructor
+    public DefaultValue(@CheckForNull final String defaultValue) {
+        this.defaultValue = Util.fixNull(defaultValue);
     }
 
     /**
      * @return the default value
      */
     @NonNull
-    public String getValue() {
-        return value;
+    public String getDefaultValue() {
+        return defaultValue;
     }
 
     /**

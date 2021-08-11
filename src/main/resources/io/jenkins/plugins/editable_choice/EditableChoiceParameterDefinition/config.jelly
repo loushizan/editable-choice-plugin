@@ -36,7 +36,7 @@ THE SOFTWARE.
     <f:textarea />
   </f:entry>
   <f:optionalBlock field="withDefaultValue" title="${%Specify default value}">
-    <f:entry title="${%Default Value}" field="value">
+    <f:entry title="${%Default Value}" field="defaultValue">
       <f:combobox />
     </f:entry>
   </f:optionalBlock>

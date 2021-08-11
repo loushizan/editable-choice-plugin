@@ -38,6 +38,7 @@ import org.kohsuke.stapler.export.Exported;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.RelativePath;
 import hudson.Util;
 import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
@@ -157,21 +158,14 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      */
     @DataBoundSetter
     public void setWithDefaultValue(@NonNull final DefaultValue defaultValue) {
-        this.defaultValue = defaultValue.getValue();
+        this.defaultValue = defaultValue.getDefaultValue();
     }
 
     /**
-     * Returns the default value with {@link DefaultValue}.
-     *
-     * Only for used with &lt;f:optionalBlock&gt;.
-     * Use {@link #getDefaultValue()} instead.
-     *
-     * @return the default value with {@link DefaultValue}
+     * @return whether the default value is configured
      */
-    @CheckForNull
-    public DefaultValue getWithDefaultValue() {
-        final String value = getDefaultValue();
-        return (value != null) ? new DefaultValue(value) : null;
+    public boolean isWithDefaultValue() {
+        return getDefaultValue() != null;
     }
 
     /**
@@ -288,7 +282,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
          * @param choicesWithText choices that the user inputing
          * @return choices
          */
-        public ComboBoxModel doFillDefaultValueItems(@CheckForNull @QueryParameter final String choicesWithText) {
+        public ComboBoxModel doFillDefaultValueItems(@CheckForNull @RelativePath("..") @QueryParameter("choicesWithText") final String choicesWithText) {
             final ComboBoxModel ret = new ComboBoxModel();
             if (choicesWithText == null) {
                 return ret;

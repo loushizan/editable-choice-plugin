@@ -44,7 +44,7 @@ THE SOFTWARE.
 <j:scope>
   <j:set var="value" value="${attrs.value ?: ''}" />
   <j:set var="restrict" value="${attrs.restrict ?: false}" />
-  <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.json : 'null'}" />
+  <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.toJson() : 'null'}" />
 
   <st:adjunct includes="io.jenkins.plugins.editable_choice.taglib.suggestInput.suggestInput" />
 
@@ -57,6 +57,7 @@ THE SOFTWARE.
         autocomplete="off"
         name="${attrs.name}"
         type="text"
+        value="${value}"
       />
     </div>
     <div class="editable-choice-suggest-choices-block">
