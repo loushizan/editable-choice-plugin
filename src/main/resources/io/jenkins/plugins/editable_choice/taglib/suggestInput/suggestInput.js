@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2012-2013 IKEDA Yasuyuki
+ * Copyright (c) 2021 IKEDA Yasuyuki
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,53 +21,70 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.editable-choice-suggest').forEach((e) => {
-    const textbox = e.querySelector('.editable-choice-suggest-input-block input[type="text"]');
-    const choiceContainer = e.querySelector('.editable-choice-suggest-choices');
-    const choices = choiceContainer.querySelectorAll('[data-value]');
-    const choiceState = {
-      'activeIdx': null
-    };
-    const setActive = (idx) => {
-      // set active choice
-      if (choiceState.activeIdx != null) {
-        if (choiceState.activeIdx === idx) {
-          return;
-        }
-        choices[choiceState.activeIdx].classList.remove('active');
-      }
-      choiceState.activeIdx = idx;
-      if (choiceState.activeIdx != null) {
-        choices[choiceState.activeIdx].classList.add('active');
-      }
-    }
-    const setUpperActive = () => {
-      if (choiceState.activeIdx == null || choiceState.activeIdx <= 0) {
-        setActive(choices.length - 1);
-        return;
-      }
-      setActive(choiceState.activeIdx - 1);
-    }
-    const setLowerActive = () => {
-      if (choiceState.activeIdx == null || choiceState.activeIdx >= choices.length - 1) {
-        setActive(0);
-        return;
-      }
-      setActive(choiceState.activeIdx + 1);
-    }
 
+// Suggest input:
+// 2 state: suggesting / not-suggesting
+//
+// suggesting:
+// * show suggest box (add 'suggesting' class to the container)
+// * losing the focus: switch to not-suggesting
+// * pressing up cursor: select upper, or select the lowest if not currently selected.
+// * pressing down cursor: select lower, or select the top most if not currently selected.
+// * pressing enter: enter the selected and switch to not-suggesting.
+// * pressing esc: switch to not-suggesting.
+// * input: filter choices in configured way.
+// * form submitting: prevent and switch to not-suggesting.
+//
+// not-suggesting:
+// * focused: switch to suggesting.
+// * pressing up cursor: select the lowest and switch to suggesting.
+// * pressing down cursor: select the top most and switch to suggesting.
+//
+// in any state:
+// * form submitting: prevent if 
+//
+// Jenkins supports IE11, so use legacy class definition.
+// https://www.jenkins.io/doc/administration/requirements/web-browsers/
+// followings are not supported in IE11:
+// * arrow function
+// * new style class definition (`class` keyword)
+// * Array.find / Array.findIndex
+document.addEventListener('DOMContentLoaded', function() {
+  // options:
+  //   textbox: textbox to use
+  //   choices: elements to use as choices
+  //   filterConfig: configurations for filtering.
+  //   restrict: whether to rectrict input to be a value in choices.
+  const SuggestInput =  function(container, option) {
+    if (!option) {
+      option = {};
+    }
+    this.container = container;
+    this.textbox = option.textbox || this.container.querySelector('input[type="text"]');
+    // workaround to make `map` applicable to NodeList. (and this works in IE)
+    this.choices = Array.prototype.slice.call(option.choices || this.container.querySelectorAll('[data-value]'));
+    this.choiceValues = this.choices.map(function(e) {
+      return e.dataset.value;
+    });
+    this.filterConfig = option.filterConfig || null;
+    this.restrict = option.restrict || null;
+
+    this.setupEvents();
+  }
+
+  SuggestInput.prototype.setupEvents = function() {
+    const self = this;
     // set up choices behavior
     // * activate on mouse over
     // * enter value when clicking
-    choices.forEach((e, idx) => {
-      e.addEventListener('mouseenter', () => {
-        setActive(idx);
+    this.choices.forEach(function(e) {
+      e.addEventListener('mouseenter', function() {
+        self.select(e);
       });
-      e.addEventListener('click', (evt) => {
+      e.addEventListener('click', function(evt) {
         evt.stopPropagation();
-        textbox.value = e.dataset.value;
-      })
+        self.decide(e);
+      });
     });
 
     // set up textbox behavir
@@ -75,38 +92,160 @@ document.addEventListener('DOMContentLoaded', () => {
     // * inputting texts: filter values
     // * pressing cursor keys: move active choices
     // * pressing enter: input the value
-    textbox.addEventListener('focus', () => {
-      choiceContainer.classList.add('active');
+    this.textbox.addEventListener('focus', function() {
+      self.startSuggesting();
     });
-    textbox.addEventListener('blur', () => {
+    this.textbox.addEventListener('blur', function() {
       // hiding the block immediately prevents 'click' for choices from firing.
       setTimeout(
-        () => {
-          choiceContainer.classList.remove('active');
+        function() {
+          self.stopSuggesting();
         },
         100
       );
     });
-    textbox.addEventListener('keydown', (evt) => {
+    this.textbox.addEventListener('keydown', function(evt) {
       switch (evt.keyCode) {
       case 38: // up
-        setUpperActive();
+        self.selectUpper();
         break;
       case 40: // down
-        setLowerActive();
+        self.selectLower();
         break;
       case 13: // enter
-        if (choiceState.activeIdx != null) {
-          const newValue = choices[choiceState.activeIdx].dataset.value;
-          if (newValue !== textbox.value) {
-            textbox.value = newValue;
-            // prevent form submit
-            evt.stopPropagation();
-            evt.preventDefault();
+        if (self.isSuggesting()) {
+          // prevent form submit
+          evt.stopPropagation();
+          evt.preventDefault();
+          const selected = self.getSelected();
+          if (selected != null) {
+            self.decide(selected);
+          } else {
+            self.stopSuggesting();
           }
+        }
+        break;
+      case 27: // esc
+        if (self.isSuggesting()) {
+          // prevent form submit
+          evt.stopPropagation();
+          evt.preventDefault();
+          self.stopSuggesting();
         }
         break;
       }
     });
+
+    // prevent submitting if
+    // * in suggestion mode
+    // * restricted and the value is not in choices
+    this.textbox.form.addEventListener('submit', function(evt) {
+      if (self.isSuggesting()) {
+        // prevent form submit
+        evt.stopPropagation();
+        evt.preventDefault();
+        self.stopSuggesting();
+      }
+    });
+  }
+
+  SuggestInput.prototype.startSuggesting = function() {
+    this.select(null);
+    this.container.classList.add('suggesting');
+  }
+
+  SuggestInput.prototype.stopSuggesting = function() {
+    this.select(null);
+    this.container.classList.remove('suggesting');
+  }
+
+  SuggestInput.prototype.isSuggesting = function() {
+    return this.container.classList.contains('suggesting');
+  }
+
+  SuggestInput.prototype.select = function(e) {
+    this.choices.forEach(function(e) {
+      e.classList.remove('active');
+    });
+    if (e) {
+      e.classList.add('active');
+    }
+  }
+
+  SuggestInput.prototype.getSelected = function() {
+    const selected = this.choices.filter(function(e) {
+      return e.classList.contains('active') && !e.classList.contains('filter-out');
+    });
+    if (selected.length <= 0) {
+      return null;
+    }
+    return selected[0];
+  }
+
+  SuggestInput.prototype._getAvailableChoiceState = function() {
+    const availableChoices = this.choices.filter(function(e) {
+      return !e.classList.contains('filter-out');
+    });
+    let selected = null;
+    availableChoices.forEach(function(e, idx) {
+      if (selected == null && e.classList.contains('active')) {
+        selected = idx;
+      }
+    });
+    return {
+      availableChoices: availableChoices,
+      selected: selected,
+    };
+  }
+
+  SuggestInput.prototype.selectUpper = function() {
+    if (!this.isSuggesting()) {
+      this.startSuggesting();
+      this.select(null);
+    }
+    const choiceState = this._getAvailableChoiceState();
+    if (choiceState.availableChoices.length <= 0) {
+      this.select(null);
+      return;
+    }
+    if (choiceState.selected == null || choiceState.selected <= 0) {
+      this.select(choiceState.availableChoices[choiceState.availableChoices.length - 1]);
+      return;
+    }
+    this.select(choiceState.availableChoices[choiceState.selected - 1]);
+  }
+
+  SuggestInput.prototype.selectLower = function() {
+    if (!this.isSuggesting()) {
+      this.startSuggesting();
+      this.select(null);
+    }
+    const choiceState = this._getAvailableChoiceState();
+    if (choiceState.availableChoices.length <= 0) {
+      this.select(null);
+      return;
+    }
+    if (choiceState.selected == null || choiceState.selected >= choiceState.availableChoices.length - 1) {
+      this.select(choiceState.availableChoices[0]);
+      return;
+    }
+    this.select(choiceState.availableChoices[choiceState.selected + 1]);
+  }
+
+  SuggestInput.prototype.decide = function(e) {
+    this.textbox.value = e.dataset.value;
+    this.stopSuggesting();
+  }
+
+  document.querySelectorAll('.editable-choice-suggest').forEach(function(e) {
+    new SuggestInput(
+      e,
+      {
+        textbox: e.querySelector('.editable-choice-suggest-input-block input[type="text"]'),
+        choices: e.querySelectorAll('.editable-choice-suggest-choices [data-value]'),
+        filterConfig: JSON.parse(e.dataset.filterConfig),
+        restrict: JSON.parse(e.dataset.restrict)
+      }
+    );
   });
 });

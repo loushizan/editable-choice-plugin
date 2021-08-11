@@ -16,13 +16,12 @@
   position: absolute;
   width: 100%;
   border: 1px solid #000;
-  background-color: Canvas;
-  color: CanvasText;
+  background-color: #fff;
+  color: #000;
   margin: 0;
   padding: 0;
 }
 
-.editable-choice-suggest .editable-choice-suggest-choices.active {
+.editable-choice-suggest.suggesting .editable-choice-suggest-choices {
   display: block;
 }
-

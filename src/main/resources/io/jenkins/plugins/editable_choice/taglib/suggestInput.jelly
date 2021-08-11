@@ -44,11 +44,11 @@ THE SOFTWARE.
 <j:scope>
   <j:set var="value" value="${attrs.value ?: ''}" />
   <j:set var="restrict" value="${attrs.restrict ?: false}" />
-  <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.json : null}" />
+  <j:set var="filterConfigJson" value="${attrs.filterConfig != null ? attrs.filterConfig.json : 'null'}" />
 
   <st:adjunct includes="io.jenkins.plugins.editable_choice.taglib.suggestInput.suggestInput" />
 
-  <div class="editable-choice-suggest">
+  <div class="editable-choice-suggest" data-filter-config="${filterConfigJson}" data-restrict="${restrict}">
     <div class="editable-choice-suggest-input-block">
       <m:input
         xmlns:m="jelly:hudson.util.jelly.MorphTagLibrary"
@@ -60,7 +60,7 @@ THE SOFTWARE.
       />
     </div>
     <div class="editable-choice-suggest-choices-block">
-      <ul class="editable-choice-suggest-choices" data-filter-config="${filterConfigJson}">
+      <ul class="editable-choice-suggest-choices">
         <j:forEach var="value" items="${attrs.items}">
           <li class="editable-choice-suggest-choice" data-value="${value}">${value}</li>
         </j:forEach>
