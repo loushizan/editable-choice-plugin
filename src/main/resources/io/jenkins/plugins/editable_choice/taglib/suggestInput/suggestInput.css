@@ -7,6 +7,10 @@
   color: HighlightText;
 }
 
+.editable-choice-suggest [data-value].filter-out {
+  display: none;
+}
+
 .editable-choice-suggest .editable-choice-suggest-choices-block {
   position: relative;
 }
@@ -24,4 +28,10 @@
 
 .editable-choice-suggest.suggesting .editable-choice-suggest-choices {
   display: block;
+}
+
+.editable-choice-suggest.restriction-error input[type="text"] {
+  background-color: #fcc;
+  border-color: #f00;
+  box-shadow: 0 0 0.1em #f00;
 }

@@ -36,7 +36,7 @@ THE SOFTWARE.
         name="value"
         value="${it.defaultParameterValue.value}"
         items="${it.choices}"
-        restrict="${it.rectrict}"
+        restrict="${it.restrict}"
         filterConfig="${it.filterConfig}"
       />
     </div>

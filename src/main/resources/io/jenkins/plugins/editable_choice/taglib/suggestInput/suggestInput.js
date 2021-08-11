@@ -68,9 +68,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     this.filterConfig = option.filterConfig || null;
     this.restrict = option.restrict || null;
+    this.filterInput = '';
+    this.filter = null;
+    if (this.filterConfig != null) {
+      if (this.filterConfig.prefix) {
+        if (this.filterConfig.caseInsensitive) {
+          this.filter = function(input, testValue) {
+            if (!input) { return true; }
+            return testValue.toLowerCase().indexOf(input.toLowerCase()) == 0;
+          }
+        } else {
+          this.filter = function(input, testValue) {
+            if (!input) { return true; }
+            return testValue.indexOf(input) == 0;
+          }
+        }
+      } else {
+        if (this.filterConfig.caseInsensitive) {
+          this.filter = function(input, testValue) {
+            if (!input) { return true; }
+            return testValue.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+          }
+        } else {
+          this.filter = function(input, testValue) {
+            if (!input) { return true; }
+            return testValue.indexOf(input) >= 0;
+          }
+        }
+      }
+    }
 
     this.setupEvents();
-  }
+    this.updateFilter();
+    this.checkRestriction();
+  };
 
   SuggestInput.prototype.setupEvents = function() {
     const self = this;
@@ -89,9 +120,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // set up textbox behavir
     // * focus / blur: toggle display of choices
-    // * inputting texts: filter values
     // * pressing cursor keys: move active choices
     // * pressing enter: input the value
+    // * inputting: filter values
+    // * updating: error check (restrict mode)
     this.textbox.addEventListener('focus', function() {
       self.startSuggesting();
     });
@@ -135,11 +167,24 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
       }
     });
+    this.textbox.addEventListener('input', function() {
+      self.updateFilter();
+    });
+    this.textbox.addEventListener('change', function() {
+      self.checkRestriction();
+    });
 
     // prevent submitting if
     // * in suggestion mode
     // * restricted and the value is not in choices
     this.textbox.form.addEventListener('submit', function(evt) {
+      if (self.isRestrictionError()) {
+        // prevent form submit
+        evt.stopPropagation();
+        evt.preventDefault();
+        self.startSuggesting();
+        return;
+      }
       if (self.isSuggesting()) {
         // prevent form submit
         evt.stopPropagation();
@@ -147,21 +192,21 @@ document.addEventListener('DOMContentLoaded', function() {
         self.stopSuggesting();
       }
     });
-  }
+  };
 
   SuggestInput.prototype.startSuggesting = function() {
     this.select(null);
     this.container.classList.add('suggesting');
-  }
+  };
 
   SuggestInput.prototype.stopSuggesting = function() {
     this.select(null);
     this.container.classList.remove('suggesting');
-  }
+  };
 
   SuggestInput.prototype.isSuggesting = function() {
     return this.container.classList.contains('suggesting');
-  }
+  };
 
   SuggestInput.prototype.select = function(e) {
     this.choices.forEach(function(e) {
@@ -170,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e) {
       e.classList.add('active');
     }
-  }
+  };
 
   SuggestInput.prototype.getSelected = function() {
     const selected = this.choices.filter(function(e) {
@@ -180,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return null;
     }
     return selected[0];
-  }
+  };
 
   SuggestInput.prototype._getAvailableChoiceState = function() {
     const availableChoices = this.choices.filter(function(e) {
@@ -196,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
       availableChoices: availableChoices,
       selected: selected,
     };
-  }
+  };
 
   SuggestInput.prototype.selectUpper = function() {
     if (!this.isSuggesting()) {
@@ -213,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     this.select(choiceState.availableChoices[choiceState.selected - 1]);
-  }
+  };
 
   SuggestInput.prototype.selectLower = function() {
     if (!this.isSuggesting()) {
@@ -230,12 +275,49 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     this.select(choiceState.availableChoices[choiceState.selected + 1]);
-  }
+  };
 
   SuggestInput.prototype.decide = function(e) {
     this.textbox.value = e.dataset.value;
+    this.checkRestriction();
     this.stopSuggesting();
-  }
+  };
+
+  SuggestInput.prototype.updateFilter = function() {
+    if (!this.filter == null) {
+      return;
+    }
+    const filter = this.textbox.value;
+    if (filter === this.filterInput) {
+      return;
+    }
+    const self = this;
+    this.choices.forEach(function(e) {
+      if (self.filter(filter, e.dataset.value)) {
+        e.classList.remove('filter-out');
+      } else {
+        e.classList.add('filter-out');
+        e.classList.remove('active');
+      }
+    });
+    this.filterInput = filter;
+  };
+  SuggestInput.prototype.isRestrictionError = function() {
+    if (!this.restrict) {
+      return false;
+    }
+    return !this.choiceValues.includes(this.textbox.value);
+  };
+  SuggestInput.prototype.checkRestriction = function() {
+    if (!this.restrict) {
+      return;
+    }
+    if (this.isRestrictionError()) {
+      this.container.classList.add('restriction-error');
+    } else {
+      this.container.classList.remove('restriction-error');
+    }
+  };
 
   document.querySelectorAll('.editable-choice-suggest').forEach(function(e) {
     new SuggestInput(

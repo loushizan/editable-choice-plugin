@@ -29,6 +29,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -62,6 +63,7 @@ public class DefaultValue extends AbstractDescribableImpl<DefaultValue> {
     /**
      * Descriptor for {@link DefaultValue}
      */
+    @Extension
     public static class DescriptorImpl extends Descriptor<DefaultValue> {
     }
 }

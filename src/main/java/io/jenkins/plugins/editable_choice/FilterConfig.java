@@ -67,6 +67,7 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
     /**
      * @param caseInsensitive whether to match in case insensitive
      */
+    @DataBoundSetter
     public void setCaseInsensitive(boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
     }
