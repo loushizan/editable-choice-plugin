@@ -34,6 +34,32 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>sun_checks.xml</configLocation>
+                    <suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <!-- validate is too early for developing -->
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <licenses>
         <license>
             <name>MIT License</name>

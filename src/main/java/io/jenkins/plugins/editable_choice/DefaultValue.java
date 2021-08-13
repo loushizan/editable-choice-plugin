@@ -35,7 +35,7 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 
 /**
- * DefaultValue is used only to be used with &lt;f:optionalBlock&gt;
+ * DefaultValue is used only to be used with &lt;f:optionalBlock&gt;.
  */
 @Restricted(NoExternalUse.class)
 public class DefaultValue extends AbstractDescribableImpl<DefaultValue> {
@@ -43,7 +43,7 @@ public class DefaultValue extends AbstractDescribableImpl<DefaultValue> {
     private final String defaultValue;
 
     /**
-     * ctor
+     * ctor.
      *
      * @param defaultValue the default value
      */
@@ -61,7 +61,7 @@ public class DefaultValue extends AbstractDescribableImpl<DefaultValue> {
     }
 
     /**
-     * Descriptor for {@link DefaultValue}
+     * Descriptor for {@link DefaultValue}.
      */
     @Extension
     public static class DescriptorImpl extends Descriptor<DefaultValue> {

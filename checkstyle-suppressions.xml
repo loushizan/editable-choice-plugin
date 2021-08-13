@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+  "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+  "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+
+<suppressions>
+  <suppress checks="HiddenField" files=".*" />
+  <suppress checks="JavadocPackage" files=".*" />
+  <suppress checks="JavadocVariable" files=".*" />
+  <!-- 80 letters are too small for modern environments -->
+  <suppress checks="LineLength" files=".*" />
+  <!-- auto generated codes -->
+  <suppress checks=".*" files="/Messages\.java$"/>
+  <suppress checks=".*" files="/InjectedTest\.java$"/>
+</suppressions>

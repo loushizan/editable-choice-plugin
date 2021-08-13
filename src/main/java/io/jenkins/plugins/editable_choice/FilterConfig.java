@@ -37,7 +37,7 @@ import hudson.model.Descriptor;
 
 
 /**
- * FilterConfig holds configurations how to filter values for the input
+ * FilterConfig holds configurations how to filter values for the input.
  */
 public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implements Serializable {
     private static final long serialVersionUID = 6989114009969654271L;
@@ -45,6 +45,9 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
     private boolean prefix = false;
     private boolean caseInsensitive = false;
 
+    /**
+     * ctor.
+     */
     @DataBoundConstructor
     public FilterConfig() {
     }
@@ -53,7 +56,7 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
      * @param prefix whether to filter values only with prefixes
      */
     @DataBoundSetter
-    public void setPrefix(boolean prefix) {
+    public void setPrefix(final boolean prefix) {
         this.prefix = prefix;
     }
 
@@ -68,7 +71,7 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
      * @param caseInsensitive whether to match in case insensitive
      */
     @DataBoundSetter
-    public void setCaseInsensitive(boolean caseInsensitive) {
+    public void setCaseInsensitive(final boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
     }
 
@@ -92,7 +95,7 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
     }
 
     /**
-     * Descriptor for {@link FilterConfig}
+     * Descriptor for {@link FilterConfig}.
      */
     @Symbol("filterConfig")
     @Extension

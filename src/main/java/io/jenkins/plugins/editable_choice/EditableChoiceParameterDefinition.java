@@ -61,7 +61,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     private FilterConfig filterConfig = null;
 
     /**
-     * ctor
+     * ctor.
      *
      * @param name the name of the parameter
      */
@@ -93,7 +93,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     @NonNull
     public static List<String> choicesFromText(@NonNull final String text) {
         final List<String> stringList = Arrays.asList(text.split("\\r?\\n", -1));
-        if(stringList.isEmpty() || !StringUtils.isEmpty(stringList.get(stringList.size() - 1))) {
+        if (stringList.isEmpty() || !StringUtils.isEmpty(stringList.get(stringList.size() - 1))) {
             return stringList;
         }
 
@@ -105,6 +105,10 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
         return newList;
     }
 
+    /**
+     * @param choices choices
+     * @return choices with delimited with new lines
+     */
     public static String textFromChoices(@NonNull final List<String> choices) {
         final StringBuffer sb = new StringBuffer();
         for (final String s : choices) {
@@ -188,7 +192,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * @param filterConfig how to filter values for input. {@code null} not to filter.
      */
     @DataBoundSetter
-    public void setFilterConfig(@CheckForNull FilterConfig filterConfig) {
+    public void setFilterConfig(@CheckForNull final FilterConfig filterConfig) {
         this.filterConfig = filterConfig;
     }
 
@@ -259,13 +263,14 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * @throws IllegalArgumentException The value is not in choices when restricted.
      */
     @Override
-    public ParameterValue createValue(String value) throws IllegalArgumentException {
-        value = Util.fixNull(value);
-        return createValueCommon(new StringParameterValue(getName(), value, getDescription()));
+    public ParameterValue createValue(final String value) throws IllegalArgumentException {
+        return createValueCommon(
+            new StringParameterValue(getName(), Util.fixNull(value), getDescription())
+        );
     }
 
     /**
-     * Descriptor for {@link EditableChoiceParameterDefinition}
+     * Descriptor for {@link EditableChoiceParameterDefinition}.
      */
     @Extension
     @Symbol("editableChoice")
@@ -282,7 +287,9 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
          * @param choicesWithText choices that the user inputing
          * @return choices
          */
-        public ComboBoxModel doFillDefaultValueItems(@CheckForNull @RelativePath("..") @QueryParameter("choicesWithText") final String choicesWithText) {
+        public ComboBoxModel doFillDefaultValueItems(
+            @CheckForNull @RelativePath("..") @QueryParameter("choicesWithText") final String choicesWithText
+        ) {
             final ComboBoxModel ret = new ComboBoxModel();
             if (choicesWithText == null) {
                 return ret;
