@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+// Bahave just like Jenkins build-in combobox as possible.
+//
 // Suggest input:
 // 2 state: suggesting / not-suggesting
 //
@@ -31,8 +33,9 @@
 // * pressing up cursor: select upper, or select the lowest if not currently selected.
 // * pressing down cursor: select lower, or select the top most if not currently selected.
 // * pressing enter: enter the selected and switch to not-suggesting.
+// * pressing tab: same to pressing enter.
 // * pressing esc: switch to not-suggesting.
-// * input: filter choices in configured way.
+// * input: filter choices in configured way. select completely matching choice, deselect if none.
 // * form submitting: prevent and switch to not-suggesting.
 //
 // not-suggesting:
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     this.filterConfig = option.filterConfig || null;
     this.restrict = option.restrict || null;
-    this.filterInput = '';
+    this.currentInput = '';
     this.filter = null;
     if (this.filterConfig != null) {
       if (this.filterConfig.prefix) {
@@ -99,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     this.setupEvents();
-    this.updateFilter();
+    this.updateInput(true);
     this.checkRestriction();
   };
 
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // set up textbox behavir
     // * focus / blur: toggle display of choices
     // * pressing cursor keys: move active choices
-    // * pressing enter: input the value
+    // * pressing enter / tab: input the selected value
     // * inputting: filter values
     // * updating: error check (restrict mode)
     this.textbox.addEventListener('focus', function() {
@@ -140,10 +143,15 @@ document.addEventListener('DOMContentLoaded', function() {
       switch (evt.keyCode) {
       case 38: // up
         self.selectUpper();
+        evt.stopPropagation();
+        evt.preventDefault();
         break;
       case 40: // down
         self.selectLower();
+        evt.stopPropagation();
+        evt.preventDefault();
         break;
+      case 9: // tab
       case 13: // enter
         if (self.isSuggesting()) {
           // prevent form submit
@@ -159,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
       case 27: // esc
         if (self.isSuggesting()) {
-          // prevent form submit
           evt.stopPropagation();
           evt.preventDefault();
           self.stopSuggesting();
@@ -168,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     this.textbox.addEventListener('input', function() {
-      self.updateFilter();
+      self.updateInput();
     });
     this.textbox.addEventListener('change', function() {
       self.checkRestriction();
@@ -195,11 +202,17 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   SuggestInput.prototype.startSuggesting = function() {
-    this.select(null);
+    if (this.isSuggesting()) {
+      return;
+    }
+    this.updateInput(true);
     this.container.classList.add('suggesting');
   };
 
   SuggestInput.prototype.stopSuggesting = function() {
+    if (!this.isSuggesting()) {
+      return;
+    }
     this.select(null);
     this.container.classList.remove('suggesting');
   };
@@ -283,31 +296,44 @@ document.addEventListener('DOMContentLoaded', function() {
     this.stopSuggesting();
   };
 
-  SuggestInput.prototype.updateFilter = function() {
-    if (!this.filter == null) {
+  SuggestInput.prototype.updateInput = function(force) {
+    const input = this.textbox.value;
+    if (!force && input === this.currentInput) {
       return;
     }
-    const filter = this.textbox.value;
-    if (filter === this.filterInput) {
-      return;
-    }
+    this.currentInput = input;
+
+    let availables = [];
     const self = this;
-    this.choices.forEach(function(e) {
-      if (self.filter(filter, e.dataset.value)) {
-        e.classList.remove('filter-out');
-      } else {
-        e.classList.add('filter-out');
-        e.classList.remove('active');
+    if (this.filter != null) {
+      this.choices.forEach(function(e) {
+        if (self.filter(filter, e.dataset.value)) {
+          e.classList.remove('filter-out');
+          availables.push(e);
+        } else {
+          e.classList.add('filter-out');
+          e.classList.remove('active');
+        }
+      });
+    } else {
+      availables = this.choices;
+    }
+    let match = null;
+    availables.forEach(function(e) {
+      if (match == null && e.dataset.value === self.currentInput) {
+        match = e;
       }
     });
-    this.filterInput = filter;
+    this.select(match);
   };
+
   SuggestInput.prototype.isRestrictionError = function() {
     if (!this.restrict) {
       return false;
     }
     return !this.choiceValues.includes(this.textbox.value);
   };
+
   SuggestInput.prototype.checkRestriction = function() {
     if (!this.restrict) {
       return;
