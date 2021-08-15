@@ -29,6 +29,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -54,9 +56,9 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
 
     @NonNull
     private List<String> choices = new ArrayList<>();
-    private boolean restrict = false;
     @CheckForNull
     private String defaultValue = null;
+    private boolean restrict = false;
     @CheckForNull
     private FilterConfig filterConfig = null;
 
@@ -64,10 +66,20 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * ctor.
      *
      * @param name the name of the parameter
+     * @param description the description of the parameter
      */
     @DataBoundConstructor
+    public EditableChoiceParameterDefinition(@NonNull final String name, @CheckForNull final String description) {
+        super(name, description);
+    }
+
+    /**
+     * ctor.
+     *
+     * @param name the name of the parameter
+     */
     public EditableChoiceParameterDefinition(@NonNull final String name) {
-        super(name);
+        this(name, null);
     }
 
     /**
@@ -135,6 +147,15 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
+     * @param choices choices
+     * @return this instance
+     */
+    public EditableChoiceParameterDefinition withChoices(final List<String> choices) {
+        setChoices(choices);
+        return this;
+    }
+
+    /**
      * @param defaultValue the default value. The top choice is used if
      *                     {@code null}.
      */
@@ -160,16 +181,34 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      *
      * @param defaultValue the default value with {@link DefaultValue}
      */
+    @Restricted(NoExternalUse.class)
     @DataBoundSetter
     public void setWithDefaultValue(@NonNull final DefaultValue defaultValue) {
         this.defaultValue = defaultValue.getDefaultValue();
     }
 
     /**
-     * @return whether the default value is configured
+     * Return the default value with {@link DefaultValue}.
+     *
+     * Only for used with &lt;f:optionalBlock&gt;.
+     * Use {@link #getDefaultValue()} instead.
+     *
+     * @return the default value with {@link DefaultValue}
      */
-    public boolean isWithDefaultValue() {
-        return getDefaultValue() != null;
+    @Restricted(NoExternalUse.class)
+    @CheckForNull
+    public DefaultValue getWithDefaultValue() {
+        final String value = getDefaultValue();
+        return (value != null) ? new DefaultValue(value) : null;
+    }
+
+    /**
+     * @param defaultValue the default value
+     * @return this instance
+     */
+    public EditableChoiceParameterDefinition withDefaultValue(@CheckForNull final String defaultValue) {
+        setDefaultValue(defaultValue);
+        return this;
     }
 
     /**
@@ -189,6 +228,15 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
+     * @param restrict whether restrict value in choices
+     * @return this instance
+     */
+    public EditableChoiceParameterDefinition withRestrict(final boolean restrict) {
+        setRestrict(restrict);
+        return this;
+    }
+
+    /**
      * @param filterConfig how to filter values for input. {@code null} not to filter.
      */
     @DataBoundSetter
@@ -202,6 +250,15 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     @CheckForNull
     public FilterConfig getFilterConfig() {
         return filterConfig;
+    }
+
+    /**
+     * @param filterConfig how to filter values for input
+     * @return this instance
+     */
+    public EditableChoiceParameterDefinition withFilterConfig(@CheckForNull final FilterConfig filterConfig) {
+        setFilterConfig(filterConfig);
+        return this;
     }
 
     /**

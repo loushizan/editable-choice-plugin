@@ -68,6 +68,15 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
     }
 
     /**
+     * @param prefix whether to filter values only with prefixes
+     * @return this instance
+     */
+    public FilterConfig withPrefix(final boolean prefix) {
+        setPrefix(prefix);
+        return this;
+    }
+
+    /**
      * @param caseInsensitive whether to match in case insensitive
      */
     @DataBoundSetter
@@ -80,6 +89,15 @@ public class FilterConfig extends AbstractDescribableImpl<FilterConfig> implemen
      */
     public boolean isCaseInsensitive() {
         return caseInsensitive;
+    }
+
+    /**
+     * @param caseInsensitive whether to match in case insensitive
+     * @return this instance
+     */
+    public FilterConfig withCaseInsensitive(final boolean caseInsensitive) {
+        setCaseInsensitive(caseInsensitive);
+        return this;
     }
 
     /**
