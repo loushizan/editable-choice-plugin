@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const self = this;
     if (this.filter != null) {
       this.choices.forEach(function(e) {
-        if (self.filter(filter, e.dataset.value)) {
+        if (self.filter(self.currentInput, e.dataset.value)) {
           e.classList.remove('filter-out');
           availables.push(e);
         } else {
