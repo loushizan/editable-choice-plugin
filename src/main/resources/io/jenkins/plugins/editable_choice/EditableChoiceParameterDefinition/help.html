@@ -1,0 +1,21 @@
+<div>
+<p>
+Display choices but allows inputting any values even not in choices. Works just like suggestion.
+</p>
+<p>
+To use in pipeline:
+<code><pre>
+editableChoice(
+  name: 'PARAM1',
+  choices: ['Apple', 'Grape', 'Orange'],
+  // belows are optional paramters
+  defaultValue: 'Grape',
+  restrict: true,
+  filterConfig: filterConfig(
+    prefix: true,
+    caseInsensitive: true,
+  ),
+)
+</pre></code>
+</p>
+</div>
