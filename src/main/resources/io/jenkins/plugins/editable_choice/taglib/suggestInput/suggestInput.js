@@ -44,7 +44,7 @@
 // * pressing down cursor: select the top most and switch to suggesting.
 //
 // in any state:
-// * form submitting: prevent if 
+// * form submitting: prevent if in restrict mode and the value isn't in choices.
 //
 // Jenkins supports IE11, so use legacy class definition.
 // https://www.jenkins.io/doc/administration/requirements/web-browsers/
