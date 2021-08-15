@@ -9,6 +9,8 @@
   <suppress checks="JavadocVariable" files=".*" />
   <!-- 80 letters are too small for modern environments -->
   <suppress checks="LineLength" files=".*" />
+  <!-- test codes -->
+  <suppress checks="MissingJavadocMethod" files="/src/test/java/.*$"/>
   <!-- auto generated codes -->
   <suppress checks=".*" files="/Messages\.java$"/>
   <suppress checks=".*" files="/InjectedTest\.java$"/>
