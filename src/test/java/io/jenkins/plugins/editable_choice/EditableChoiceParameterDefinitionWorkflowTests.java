@@ -75,6 +75,48 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
     }
 
     @Test
+    public void decralativePipelineWithFilter() throws Exception {
+        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        p.setDefinition(new CpsFlowDefinition(
+            String.join(
+                "\n",
+                new String[] {
+                    "pipeline {",
+                    "  agent any",
+                    "  parameters {",
+                    "    editableChoice(",
+                    "      name: 'PARAM1',",
+                    "      choices: ['Apple', 'Grape', 'Orange'],",
+                    "      defaultValue: 'Grape',",
+                    "      restrict: true,",
+                    "      filterConfig: filterConfig(prefix: true, caseInsensitive: true),",
+                    "    )",
+                    "  }",
+                    "  stages {",
+                    "    stage('build') {",
+                    "      steps {",
+                    "        echo \"PARAM1=${params.PARAM1}\"",
+                    "       }",
+                    "    }",
+                    "  }",
+                    "}",
+                }
+            ),
+            true
+        ));
+        WorkflowRun r = j.buildAndAssertSuccess(p);
+        j.assertLogContains("PARAM1=Grape", r);
+        j.assertEqualDataBoundBeans(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("Grape")
+                .withRestrict(true)
+                .withFilterConfig(new FilterConfig().withPrefix(true).withCaseInsensitive(true)),
+            p.getProperty(ParametersDefinitionProperty.class).getParameterDefinition("PARAM1")
+        );
+    }
+
+    @Test
     public void scriptedPipeline() throws Exception {
         WorkflowJob p = j.createProject(WorkflowJob.class, "test");
         p.setDefinition(new CpsFlowDefinition(
@@ -102,6 +144,43 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange")),
             p.getProperty(ParametersDefinitionProperty.class).getParameterDefinition("PARAM1")
+        );
+    }
+
+    @Test
+    public void scriptedPipelineWithFilterConfig() throws Exception {
+        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        p.setDefinition(new CpsFlowDefinition(
+            String.join(
+                "\n",
+                new String[] {
+                    "properties([",
+                    "  parameters([",
+                    "    editableChoice(",
+                    "      name: 'PARAM1',",
+                    "      choices: ['Apple', 'Grape', 'Orange'],",
+                    "      defaultValue: 'Grape',",
+                    "      restrict: true,",
+                    "      filterConfig: filterConfig(prefix: true, caseInsensitive: true),",
+                    "    ),",
+                    "  ]),",
+                    "])",
+                    "node {",
+                    "  echo \"PARAM1=${params.PARAM1}\"",
+                    "}",
+                }
+            ),
+            true
+        ));
+        WorkflowRun r = j.buildAndAssertSuccess(p);
+        j.assertLogContains("PARAM1=Grape", r);
+        j.assertEqualDataBoundBeans(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("Grape")
+                .withRestrict(true)
+                .withFilterConfig(new FilterConfig().withPrefix(true).withCaseInsensitive(true)),
+        p.getProperty(ParametersDefinitionProperty.class).getParameterDefinition("PARAM1")
         );
     }
 }
