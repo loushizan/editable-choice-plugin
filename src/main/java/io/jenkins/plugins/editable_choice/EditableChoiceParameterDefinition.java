@@ -268,13 +268,21 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     public ParameterValue getDefaultParameterValue() {
         final String defaultValue = getDefaultValue();
         if (defaultValue != null) {
-            return new StringParameterValue(getName(), defaultValue, getDescription());
+            return createValueCommon(new StringParameterValue(
+                getName(),
+                defaultValue,
+                getDescription())
+            );
         }
         final List<String> choices = getChoices();
         if (choices.size() <= 0) {
             return null;
         }
-        return new StringParameterValue(getName(), choices.get(0), getDescription());
+        return createValueCommon(new StringParameterValue(
+            getName(),
+            choices.get(0),
+            getDescription()
+        ));
     }
 
     /**
@@ -297,7 +305,11 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     protected ParameterValue createValueCommon(final StringParameterValue value) throws IllegalArgumentException {
         if (!checkValue(value.getValue())) {
             throw new IllegalArgumentException(
-                    Messages.EditableChoiceParameterDefinition_IllegalChoice(value.getValue(), value.getName()));
+                Messages.EditableChoiceParameterDefinition_IllegalChoice(
+                    value.getValue(),
+                    value.getName()
+                )
+            );
         }
         return value;
     }

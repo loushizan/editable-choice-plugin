@@ -29,7 +29,7 @@ THE SOFTWARE.
   -->
   <j:set var="escapeEntryTitleAndDescription" value="false" />
   <f:entry title="${h.escape(it.name)}" description="${it.formattedDescription}">
-    <div name="parameter" description="${it.description}">
+    <div name="parameter" description="${it.description}" data-parameter="${it.name}">
       <input type="hidden" name="name" value="${it.name}" />
       <mylib:suggestInput
         class="setting-input"
