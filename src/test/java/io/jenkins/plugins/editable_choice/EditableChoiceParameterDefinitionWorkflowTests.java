@@ -40,7 +40,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
 
     @Test
     public void decralativePipeline() throws Exception {
-        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        final WorkflowJob p = j.createProject(WorkflowJob.class, "test");
         p.setDefinition(new CpsFlowDefinition(
             String.join(
                 "\n",
@@ -65,7 +65,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
             ),
             true
         ));
-        WorkflowRun r = j.buildAndAssertSuccess(p);
+        final WorkflowRun r = j.buildAndAssertSuccess(p);
         j.assertLogContains("PARAM1=Apple", r);
         j.assertEqualDataBoundBeans(
             new EditableChoiceParameterDefinition("PARAM1")
@@ -76,7 +76,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
 
     @Test
     public void decralativePipelineWithFilter() throws Exception {
-        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        final WorkflowJob p = j.createProject(WorkflowJob.class, "test");
         p.setDefinition(new CpsFlowDefinition(
             String.join(
                 "\n",
@@ -104,7 +104,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
             ),
             true
         ));
-        WorkflowRun r = j.buildAndAssertSuccess(p);
+        final WorkflowRun r = j.buildAndAssertSuccess(p);
         j.assertLogContains("PARAM1=Grape", r);
         j.assertEqualDataBoundBeans(
             new EditableChoiceParameterDefinition("PARAM1")
@@ -118,7 +118,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
 
     @Test
     public void scriptedPipeline() throws Exception {
-        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        final WorkflowJob p = j.createProject(WorkflowJob.class, "test");
         p.setDefinition(new CpsFlowDefinition(
             String.join(
                 "\n",
@@ -138,7 +138,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
             ),
             true
         ));
-        WorkflowRun r = j.buildAndAssertSuccess(p);
+        final WorkflowRun r = j.buildAndAssertSuccess(p);
         j.assertLogContains("PARAM1=Apple", r);
         j.assertEqualDataBoundBeans(
             new EditableChoiceParameterDefinition("PARAM1")
@@ -149,7 +149,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
 
     @Test
     public void scriptedPipelineWithFilterConfig() throws Exception {
-        WorkflowJob p = j.createProject(WorkflowJob.class, "test");
+        final WorkflowJob p = j.createProject(WorkflowJob.class, "test");
         p.setDefinition(new CpsFlowDefinition(
             String.join(
                 "\n",
@@ -172,7 +172,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
             ),
             true
         ));
-        WorkflowRun r = j.buildAndAssertSuccess(p);
+        final WorkflowRun r = j.buildAndAssertSuccess(p);
         j.assertLogContains("PARAM1=Grape", r);
         j.assertEqualDataBoundBeans(
             new EditableChoiceParameterDefinition("PARAM1")
@@ -180,7 +180,7 @@ public class EditableChoiceParameterDefinitionWorkflowTests {
                 .withDefaultValue("Grape")
                 .withRestrict(true)
                 .withFilterConfig(new FilterConfig().withPrefix(true).withCaseInsensitive(true)),
-        p.getProperty(ParametersDefinitionProperty.class).getParameterDefinition("PARAM1")
+            p.getProperty(ParametersDefinitionProperty.class).getParameterDefinition("PARAM1")
         );
     }
 }

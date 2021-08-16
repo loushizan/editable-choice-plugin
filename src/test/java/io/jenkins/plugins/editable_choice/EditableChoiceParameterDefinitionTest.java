@@ -42,29 +42,26 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
-import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Result;
-import hudson.model.StringParameterValue;
 
 public class EditableChoiceParameterDefinitionTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
     /**
-     * Run a build from view with value
+     * Run a build from view with value.
      *
      * @param p          job to run
      * @param paramName  parameter name to set
      * @param paramValue parameter value to set
      * @throws Exception any exceptions
      */
-    private void runBuildFromView(Job<?, ?> p, String paramName, String paramValue) throws Exception {
-        WebClient wc = j.createWebClient();
+    private void runBuildFromView(final Job<?, ?> p, final String paramName, final String paramValue) throws Exception {
+        final WebClient wc = j.createWebClient();
         wc.setThrowExceptionOnFailingStatusCode(false);
-        HtmlPage page = wc.getPage(p, "build?delay=0sec");
-        HtmlElement paramBlock = page.getFirstByXPath(String.format("//*[@data-parameter='%s']", paramName));
-        HtmlTextInput input = paramBlock.getOneHtmlElementByAttribute("input", "name", "value");
+        final HtmlPage page = wc.getPage(p, "build?delay=0sec");
+        final HtmlElement paramBlock = page.getFirstByXPath(String.format("//*[@data-parameter='%s']", paramName));
+        final HtmlTextInput input = paramBlock.getOneHtmlElementByAttribute("input", "name", "value");
         input.setValueAttribute(paramValue);
         j.submit(page.getFormByName("parameters"));
         j.waitUntilNoActivity();
@@ -72,7 +69,7 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void configSimple() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -82,7 +79,7 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void configFull1() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1", "description1\ndescription2")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -99,7 +96,7 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void configFull2() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1", "description1\ndescription2")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -117,12 +114,12 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void useTopMost() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         j.buildAndAssertSuccess(p);
         assertThat(ceb.getEnvVars().get("PARAM1"), is(equalTo("Apple")));
@@ -130,13 +127,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void useDefault() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         j.buildAndAssertSuccess(p);
         assertThat(ceb.getEnvVars().get("PARAM1"), is(equalTo("Grape")));
@@ -144,13 +141,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void useEmptyDefault() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         j.buildAndAssertSuccess(p);
         assertThat(ceb.getEnvVars().get("PARAM1"), is(equalTo("")));
@@ -158,13 +155,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void useDefaultNotInChoice() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grapefruit")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         j.buildAndAssertSuccess(p);
         assertThat(ceb.getEnvVars().get("PARAM1"), is(equalTo("Grapefruit")));
@@ -172,13 +169,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void specifyValue() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         runBuildFromView(p, "PARAM1", "Orange");
         j.assertBuildStatusSuccess(p.getLastBuild());
@@ -187,13 +184,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void specifyValueNotInChoices() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         runBuildFromView(p, "PARAM1", "Grapefruit");
         j.assertBuildStatusSuccess(p.getLastBuild());
@@ -202,13 +199,13 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void specifyValueEmpty() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         runBuildFromView(p, "PARAM1", "");
         j.assertBuildStatusSuccess(p.getLastBuild());
@@ -217,22 +214,22 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void restrictWithDefault() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
                 .withRestrict(true)
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         j.buildAndAssertSuccess(p);
         assertThat(ceb.getEnvVars().get("PARAM1"), is(equalTo("Grape")));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void restrictWithDefaultNotInChoice() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -242,9 +239,9 @@ public class EditableChoiceParameterDefinitionTest {
         p.scheduleBuild2(0);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void restrictWithDefaultEmpty() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -256,14 +253,14 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void restrictSpecifyValue() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape")
                 .withRestrict(true)
         ));
-        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         p.getBuildersList().add(ceb);
         runBuildFromView(p, "PARAM1", "Orange");
         j.assertBuildStatusSuccess(p.getLastBuild());
@@ -272,7 +269,7 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void restrictSpecifyValueNotInChoices() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
@@ -286,7 +283,7 @@ public class EditableChoiceParameterDefinitionTest {
 
     @Test
     public void restrictSpecifyValueEmpty() throws Exception {
-        FreeStyleProject p = j.createFreeStyleProject();
+        final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
