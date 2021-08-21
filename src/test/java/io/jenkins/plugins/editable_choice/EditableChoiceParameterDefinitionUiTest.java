@@ -41,6 +41,7 @@ import com.gargoylesoftware.htmlunit.javascript.host.event.KeyboardEvent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
@@ -87,6 +88,11 @@ public class EditableChoiceParameterDefinitionUiTest {
             String.format("[data-parameter='%s']", paramName)
         );
         return paramBlock.getOneHtmlElementByAttribute("input", "name", "value");
+    }
+
+    private HtmlElement getChoice(final HtmlPage page, final String paramName, final String value) throws Exception {
+        final HtmlElement choicesBlock = getSuggestInputChoicesBlock(page, paramName);
+        return choicesBlock.querySelector(String.format("[data-value='%s']", value));
     }
 
     private String getCurrentSelected(final HtmlPage page, final String paramName) throws Exception {
@@ -214,6 +220,33 @@ public class EditableChoiceParameterDefinitionUiTest {
     }
 
     @Test
+    public void testCloseSuggestion() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+    }
+
+    @Test
     public void testUpCursorInSuggestion() throws Exception {
         final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
@@ -248,6 +281,34 @@ public class EditableChoiceParameterDefinitionUiTest {
         );
 
         getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_UP);
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Orange"))
+        );
+    }
+
+    @Test
+    public void testUpCursorInNonSuggestion() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_UP);
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
         assertThat(
             getCurrentSelected(page, "PARAM1"),
             is(equalTo("Orange"))
@@ -292,6 +353,178 @@ public class EditableChoiceParameterDefinitionUiTest {
         assertThat(
             getCurrentSelected(page, "PARAM1"),
             is(equalTo("Apple"))
+        );
+    }
+
+    @Test
+    public void testDownCursorInNonSuggestion() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DOWN);
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Apple"))
+        );
+    }
+
+    @Test
+    public void testEnterInSuggestionNotSelected() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type('\n');
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+
+        // form is not submitted
+        j.waitUntilNoActivity();
+        // THIS WILL FAIL.
+        // preventDefault() in keydown for 13 (VK_RETURN) doesn't prevent
+        // triggering form submittion in Htmlunit.
+        // (Or maye it's caused for using '\n' instead of VK_RETURN)
+        /*
+        assertThat(
+            p.getLastBuild(),
+            is(nullValue())
+        );
+        */
+    }
+
+    @Test
+    public void testEnterInSuggestionSelected() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+
+        // `mouseOver()` seems not fire `mouseenter` event
+        // getChoice(page, "PARAM1", "Grape").mouseOver();
+        getChoice(page, "PARAM1", "Grape").fireEvent("mouseenter");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Grape"))
+        );
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+
+        // typing VK_RETURN doesn't trigger form submittion in Htmlunit.
+        getSuggestInputTextbox(page, "PARAM1").type('\n');
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+
+        // form is not submitted
+        j.waitUntilNoActivity();
+        // THIS WILL FAIL.
+        // preventDefault() in keydown for 13 (VK_RETURN) doesn't prevent
+        // triggering form submittion in Htmlunit.
+        // (Or maye it's caused for using '\n' instead of VK_RETURN)
+        /*
+        assertThat(
+            p.getLastBuild(),
+            is(nullValue())
+        );
+        */
+    }
+
+    @Test
+    public void testEnterInNonSuggestion() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        p.getBuildersList().add(ceb);
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grapefruit");
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+
+        // typing VK_RETURN doesn't trigger form submittion in Htmlunit.
+        getSuggestInputTextbox(page, "PARAM1").type('\n');
+
+        // form is submitted
+        // Unfortunately, commented in `testEnterInSuggestionNotSelected` and `testEnterInSuggestionSelected`,
+        // HtmlUnit doesn't handle `preventDefault()` in the expected way,
+        // and this test doesn't make sense at all.
+        j.waitUntilNoActivity();
+        j.assertBuildStatusSuccess(p.getLastBuild());
+        assertThat(
+            ceb.getEnvVars().get("PARAM1"),
+            is(equalTo("Grapefruit"))
         );
     }
 }

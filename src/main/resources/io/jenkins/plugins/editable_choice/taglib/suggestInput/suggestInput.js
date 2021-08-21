@@ -30,6 +30,7 @@
 // suggesting:
 // * show suggest box (add 'suggesting' class to the container)
 // * losing the focus: switch to not-suggesting
+// * click a choice: enter the selected and switch to not-suggesting.
 // * pressing up cursor: select upper, or select the lowest if not currently selected.
 // * pressing down cursor: select lower, or select the top most if not currently selected.
 // * pressing enter: enter the selected and switch to not-suggesting.
@@ -42,6 +43,7 @@
 // * focused: switch to suggesting.
 // * pressing up cursor: select the lowest and switch to suggesting.
 // * pressing down cursor: select the top most and switch to suggesting.
+// * input: switch to suggesting.
 //
 // in any state:
 // * form submitting: prevent if in restrict mode and the value isn't in choices.
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     this.setupEvents();
-    this.updateInput(true);
+    this.updateInput(true, true);
     this.checkRestriction();
   };
 
@@ -205,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (this.isSuggesting()) {
       return;
     }
-    this.updateInput(true);
+    this.updateInput(true, true);
     this.container.classList.add('suggesting');
   };
 
@@ -292,13 +294,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   SuggestInput.prototype.decide = function(e) {
     this.textbox.value = e.dataset.value;
+    this.updateInput(false, true);
     this.checkRestriction();
     this.stopSuggesting();
   };
 
-  SuggestInput.prototype.updateInput = function(force) {
+  SuggestInput.prototype.updateInput = function(forceUpdate, suppressSuggestion) {
     const input = this.textbox.value;
-    if (!force && input === this.currentInput) {
+    if (!forceUpdate && input === this.currentInput) {
       return;
     }
     this.currentInput = input;
@@ -325,6 +328,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     this.select(match);
+    if (!suppressSuggestion && !this.isSuggesting()) {
+      this.startSuggesting();
+    }
   };
 
   SuggestInput.prototype.isRestrictionError = function() {
