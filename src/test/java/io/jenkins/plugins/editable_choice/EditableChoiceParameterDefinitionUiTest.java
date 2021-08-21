@@ -69,22 +69,22 @@ public class EditableChoiceParameterDefinitionUiTest {
     }
 
     private HtmlElement getSuggestInputContainer(final HtmlPage page, final String paramName) throws Exception {
-        final HtmlElement paramBlock = page.getFirstByXPath(
-            String.format("//*[@data-parameter='%s']", paramName)
+        final HtmlElement paramBlock = page.querySelector(
+            String.format("[data-parameter='%s']", paramName)
         );
-        return paramBlock.getFirstByXPath("//*[contains(@class, 'editable-choice-suggest')]");
+        return paramBlock.querySelector(".editable-choice-suggest");
     }
 
     private HtmlElement getSuggestInputChoicesBlock(final HtmlPage page, final String paramName) throws Exception {
-        final HtmlElement paramBlock = page.getFirstByXPath(
-            String.format("//*[@data-parameter='%s']", paramName)
+        final HtmlElement paramBlock = page.querySelector(
+            String.format("[data-parameter='%s']", paramName)
         );
-        return paramBlock.getFirstByXPath("//*[contains(@class, 'editable-choice-suggest-choices')]");
+        return paramBlock.querySelector(".editable-choice-suggest-choices");
     }
 
     private HtmlTextInput getSuggestInputTextbox(final HtmlPage page, final String paramName) throws Exception {
-        final HtmlElement paramBlock = page.getFirstByXPath(
-            String.format("//*[@data-parameter='%s']", paramName)
+        final HtmlElement paramBlock = page.querySelector(
+            String.format("[data-parameter='%s']", paramName)
         );
         return paramBlock.getOneHtmlElementByAttribute("input", "name", "value");
     }
@@ -127,23 +127,17 @@ public class EditableChoiceParameterDefinitionUiTest {
     }
 
     private void assertDisplays(final HtmlElement e) {
-        // somehow isDisplayed() always return `true`.
-        /*
         assertThat(
             e.isDisplayed(),
             is(true)
         );
-        */
     }
 
     private void assertNotDisplays(final HtmlElement e) {
-        // somehow isDisplayed() always return `true`.
-        /*
         assertThat(
             e.isDisplayed(),
             is(false)
         );
-        */
     }
 
     @Test
@@ -257,6 +251,47 @@ public class EditableChoiceParameterDefinitionUiTest {
         assertThat(
             getCurrentSelected(page, "PARAM1"),
             is(equalTo("Orange"))
+        );
+    }
+
+    @Test
+    public void testDownCursorInSuggestion() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DOWN);
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Apple"))
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DOWN);
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Grape"))
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DOWN);
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Orange"))
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DOWN);
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Apple"))
         );
     }
 }

@@ -60,7 +60,7 @@ public class EditableChoiceParameterDefinitionTest {
         final WebClient wc = j.createWebClient();
         wc.setThrowExceptionOnFailingStatusCode(false);
         final HtmlPage page = wc.getPage(p, "build?delay=0sec");
-        final HtmlElement paramBlock = page.getFirstByXPath(String.format("//*[@data-parameter='%s']", paramName));
+        final HtmlElement paramBlock = page.querySelector(String.format("[data-parameter='%s']", paramName));
         final HtmlTextInput input = paramBlock.getOneHtmlElementByAttribute("input", "name", "value");
         input.setValueAttribute(paramValue);
         j.submit(page.getFormByName("parameters"));
