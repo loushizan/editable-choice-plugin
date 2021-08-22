@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlFormUtil;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 import com.gargoylesoftware.htmlunit.javascript.host.event.KeyboardEvent;
@@ -41,6 +42,7 @@ import com.gargoylesoftware.htmlunit.javascript.host.event.KeyboardEvent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
@@ -121,6 +123,11 @@ public class EditableChoiceParameterDefinitionUiTest {
             evt.isDefaultPrevented(),
             is(true)
         );
+    }
+
+    private void clickSubmit(final HtmlPage page) throws Exception {
+        // j.submit() triggers submit twice.
+        HtmlFormUtil.getSubmitButton(page.getFormByName("parameters")).click();
     }
 
     private HtmlElement getSuggestInputContainer(final HtmlPage page, final String paramName) throws Exception {
@@ -653,6 +660,99 @@ public class EditableChoiceParameterDefinitionUiTest {
         assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
         assertThat(
             getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapefruit"))
+        );
+    }
+
+    @Test
+    public void testClickChoice() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+
+        getChoice(page, "PARAM1", "Grape").click();
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+    }
+
+    @Test
+    public void testFormSubmissionInSuggesting() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grapefruit");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapefruit"))
+        );
+
+        clickSubmit(page);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapefruit"))
+        );
+
+        j.waitUntilNoActivity();
+        assertThat(
+            p.getLastBuild(),
+            is(nullValue())
+        );
+    }
+
+    @Test
+    public void testFormSubmissionInNotSuggesting() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
+        p.getBuildersList().add(ceb);
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grapefruit");
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapefruit"))
+        );
+
+        clickSubmit(page);
+
+        j.waitUntilNoActivity();
+        j.assertBuildStatusSuccess(p.getLastBuild());
+        assertThat(
+            ceb.getEnvVars().get("PARAM1"),
             is(equalTo("Grapefruit"))
         );
     }
