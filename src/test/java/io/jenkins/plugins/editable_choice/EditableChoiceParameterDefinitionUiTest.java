@@ -57,8 +57,8 @@ public class EditableChoiceParameterDefinitionUiTest {
     private static final long JAVASCRIPT_TIMEOUT = 1000;
 
     @Rule
-    public JenkinsRule j = new JenkinsRule();
-    private WebClient wc = j.createWebClient();
+    public final JenkinsRule j = new JenkinsRule();
+    private final WebClient wc = j.createWebClient();
 
     @Before
     public void setupWebClient() throws Exception {
@@ -71,7 +71,7 @@ public class EditableChoiceParameterDefinitionUiTest {
     }
 
     /*
-    // Unfortunatelly, htmlunit doesn't simulate browser behaviors for 
+    // Unfortunatelly, htmlunit doesn't simulate browser behaviors for
     // typing "ENTER" and "TAB" exactly.
     // We'll test not browser behavior but result of `preventDefault()` instead.
     private void typeEnter(final HtmlElement e) throws Exception {
@@ -93,8 +93,8 @@ public class EditableChoiceParameterDefinitionUiTest {
     }
     */
 
-    private void assertKeydownNotInturrupted(final HtmlElement e, int code) throws Exception {
-        KeyboardEvent evt = new KeyboardEvent(
+    private void assertKeydownNotInturrupted(final HtmlElement e, final int code) throws Exception {
+        final KeyboardEvent evt = new KeyboardEvent(
             e,
             KeyboardEvent.TYPE_KEY_DOWN,
             code,
@@ -109,8 +109,8 @@ public class EditableChoiceParameterDefinitionUiTest {
         );
     }
 
-    private void assertKeydownInturrupted(final HtmlElement e, int code) throws Exception {
-        KeyboardEvent evt = new KeyboardEvent(
+    private void assertKeydownInturrupted(final HtmlElement e, final int code) throws Exception {
+        final KeyboardEvent evt = new KeyboardEvent(
             e,
             KeyboardEvent.TYPE_KEY_DOWN,
             code,
