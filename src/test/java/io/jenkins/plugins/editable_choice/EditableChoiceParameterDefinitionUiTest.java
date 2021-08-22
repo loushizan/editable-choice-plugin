@@ -756,4 +756,118 @@ public class EditableChoiceParameterDefinitionUiTest {
             is(equalTo("Grapefruit"))
         );
     }
+
+    @Test
+    public void testInputInSuggestingSelect() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type("Grap");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grap"))
+        );
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type("e");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Grape"))
+        );
+    }
+
+    @Test
+    public void testInputInSuggestingDeselect() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type("Grape");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Grape"))
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type("f");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapef"))
+        );
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+    }
+
+    @Test
+    public void testInputInNotSuggesting() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(nullValue())
+        );
+
+        getSuggestInputTextbox(page, "PARAM1").type("Grape");
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getCurrentSelected(page, "PARAM1"),
+            is(equalTo("Grape"))
+        );
+    }
 }
