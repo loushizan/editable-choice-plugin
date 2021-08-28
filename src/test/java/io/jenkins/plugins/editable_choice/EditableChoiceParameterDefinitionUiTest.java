@@ -1041,27 +1041,29 @@ public class EditableChoiceParameterDefinitionUiTest {
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
-                )).withDefaultValue("Grape")
+                )).withDefaultValue("App")
         ));
         final HtmlPage page = getBuildPage(p);
 
         getSuggestInputTextbox(page, "PARAM1").focus();
         assertThat(
             getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
-            is(equalTo("Grape"))
+            is(equalTo("App"))
         );
         assertThat(
             getAvailableChoices(page, "PARAM1"),
             is(equalTo(
                 Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )
             ))
@@ -1075,9 +1077,10 @@ public class EditableChoiceParameterDefinitionUiTest {
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )).withDefaultValue("")
         ));
@@ -1093,9 +1096,10 @@ public class EditableChoiceParameterDefinitionUiTest {
             is(equalTo(
                 Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )
             ))
@@ -1109,28 +1113,30 @@ public class EditableChoiceParameterDefinitionUiTest {
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )).withDefaultValue("")
         ));
         final HtmlPage page = getBuildPage(p);
 
         getSuggestInputTextbox(page, "PARAM1").focus();
-        getSuggestInputTextbox(page, "PARAM1").type("Gra");
+        getSuggestInputTextbox(page, "PARAM1").type("App");
         assertThat(
             getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
-            is(equalTo("Gra"))
+            is(equalTo("App"))
         );
         assertThat(
             getAvailableChoices(page, "PARAM1"),
             is(equalTo(
                 Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )
             ))
@@ -1144,11 +1150,12 @@ public class EditableChoiceParameterDefinitionUiTest {
             new EditableChoiceParameterDefinition("PARAM1")
                 .withChoices(Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
-                )).withDefaultValue("Grape")
+                )).withDefaultValue("App")
         ));
         final HtmlPage page = getBuildPage(p);
 
@@ -1167,9 +1174,10 @@ public class EditableChoiceParameterDefinitionUiTest {
             is(equalTo(
                 Arrays.asList(
                     "Apple",
+                    "Apple Mango",
+                    "application",
                     "Grape",
-                    "Grapefruit",
-                    "Orange",
+                    "Green Apple",
                     "Pineapple"
                 )
             ))
@@ -1689,7 +1697,7 @@ public class EditableChoiceParameterDefinitionUiTest {
                 Arrays.asList(
                     "Apple",
                     "Apple Mango",
-                    "Pineapple"
+                    "application"
                 )
             ))
         );
