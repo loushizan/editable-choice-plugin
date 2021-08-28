@@ -1366,8 +1366,8 @@ public class EditableChoiceParameterDefinitionUiTest {
             is(equalTo(
                 Arrays.asList(
                     "Apple",
-                    "application",
                     "Apple Mango",
+                    "application",
                     "Green Apple",
                     "Pineapple"
                 )
@@ -1629,6 +1629,166 @@ public class EditableChoiceParameterDefinitionUiTest {
                 .withFilterConfig(new FilterConfig()
                     .withPrefix(true)
                     .withCaseInsensitive(false)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").setSelectionStart(0);
+        getSuggestInputTextbox(page, "PARAM1").setSelectionEnd(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute().length()
+        );
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DELETE);
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseInsensitiveInitial() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("App")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(true)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("App"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseInsensitiveInitialEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(true)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseInsensitiveInput() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(true)
+                )
+    ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("App");
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("App"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseInsensitiveInputEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("App")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(true)
                 )
         ));
         final HtmlPage page = getBuildPage(p);
