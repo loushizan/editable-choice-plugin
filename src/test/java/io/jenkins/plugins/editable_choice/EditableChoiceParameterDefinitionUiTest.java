@@ -1499,4 +1499,162 @@ public class EditableChoiceParameterDefinitionUiTest {
             ))
         );
     }
+
+    @Test
+    public void testFilterPrefixCaseSensitiveInitial() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("App")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(false)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("App"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseSensitiveInitialEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(false)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseSensitiveInput() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(false)
+                )
+    ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("App");
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("App"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testFilterPrefixCaseSensitiveInputEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )).withDefaultValue("App")
+                .withFilterConfig(new FilterConfig()
+                    .withPrefix(true)
+                    .withCaseInsensitive(false)
+                )
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").setSelectionStart(0);
+        getSuggestInputTextbox(page, "PARAM1").setSelectionEnd(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute().length()
+        );
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DELETE);
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Apple Mango",
+                    "application",
+                    "Grape",
+                    "Green Apple",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
 }
