@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlFormUtil;
@@ -159,20 +160,25 @@ public class EditableChoiceParameterDefinitionUiTest {
     private String getCurrentSelected(final HtmlPage page, final String paramName) throws Exception {
         final HtmlElement choicesBlock = getSuggestInputChoicesBlock(page, paramName);
         final List<HtmlElement> choices = choicesBlock.getByXPath("//*[@data-value]");
-        HtmlElement selected = null;
-        for (final HtmlElement e: choices) {
-            if (hasClass(e, "active")) {
-                if (selected != null) {
-                    throw new IllegalStateException(String.format(
-                        "More than one choices are active at the same time: %s and %s (or maybe more)",
-                        selected.getAttribute("data-value"),
-                        e.getAttribute("data-value")
-                    ));
-                }
-                selected = e;
-            }
+        final List<HtmlElement> selected = choices.stream()
+            .filter(e -> hasClass(e, "active"))
+            .collect(Collectors.toList());
+        if (selected.size() >= 2) {
+            throw new IllegalStateException(String.format(
+                "More than one choices are active at the same time: %s",
+                selected.stream().map(e -> e.getAttribute("data-value")).collect(Collectors.toList())
+            ));
         }
-        return (selected != null) ? selected.getAttribute("data-value") : null;
+        return (selected.isEmpty()) ? null : selected.get(0).getAttribute("data-value");
+    }
+
+    private List<String> getAvailableChoices(final HtmlPage page, final String paramName) throws Exception {
+        final HtmlElement choicesBlock = getSuggestInputChoicesBlock(page, paramName);
+        final List<HtmlElement> choices = choicesBlock.getByXPath("//*[@data-value]");
+        return choices.stream()
+            .filter(e -> e.isDisplayed())
+            .map(e -> e.getAttribute("data-value"))
+            .collect(Collectors.toList());
     }
 
     private boolean hasClass(final HtmlElement e, final String clazz) {
@@ -1025,6 +1031,149 @@ public class EditableChoiceParameterDefinitionUiTest {
         assertThat(
             p.getLastBuild(),
             is(nullValue())
+        );
+    }
+
+    @Test
+    public void testNoFilterInitial() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )).withDefaultValue("Grape")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+
+    @Test
+    public void testNoFilterInitialEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )).withDefaultValue("Grape")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testNoFilterInput() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )).withDefaultValue("")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Gra");
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Gra"))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )
+            ))
+        );
+    }
+
+    @Test
+    public void testNoFilterInputEmpty() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )).withDefaultValue("Grape")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").setSelectionStart(0);
+        getSuggestInputTextbox(page, "PARAM1").setSelectionEnd(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute().length()
+        );
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_DELETE);
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo(""))
+        );
+        assertThat(
+            getAvailableChoices(page, "PARAM1"),
+            is(equalTo(
+                Arrays.asList(
+                    "Apple",
+                    "Grape",
+                    "Grapefruit",
+                    "Orange",
+                    "Pineapple"
+                )
+            ))
         );
     }
 }
