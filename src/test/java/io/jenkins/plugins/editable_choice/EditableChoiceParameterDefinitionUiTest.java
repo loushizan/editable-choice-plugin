@@ -870,4 +870,161 @@ public class EditableChoiceParameterDefinitionUiTest {
             is(equalTo("Grape"))
         );
     }
+
+    @Test
+    public void testNoRestrictMismatch() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("Mango")
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Mango"))
+        );
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+    }
+
+    @Test
+    public void testRestrictMatchInitial() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Apple"))
+        );
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+    }
+
+    @Test
+    public void testRestrictMismatchInitial() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("Mango")
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Mango"))
+        );
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+    }
+
+    @Test
+    public void testRestrictMatchInput() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grape");
+        // Run restriction check
+        getSuggestInputTextbox(page, "PARAM1").fireEvent("change");
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+    }
+
+    @Test
+    public void testRestrictMismatchInput() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grapefruit");
+        // Run restriction check
+        getSuggestInputTextbox(page, "PARAM1").fireEvent("change");
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapefruit"))
+        );
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+    }
+
+    @Test
+    public void testFormSubmissionRestrictMatch() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grape");
+        // Close suggestion box and run restriction check
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grape"))
+        );
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+
+        clickSubmit(page);
+
+        j.waitUntilNoActivity();
+        j.assertBuildStatusSuccess(p.getLastBuild());
+    }
+
+    @Test
+    public void testFormSubmissionRestrictMismatch() throws Exception {
+        final FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
+                .withDefaultValue("")
+                .withRestrict(true)
+        ));
+        final HtmlPage page = getBuildPage(p);
+
+        getSuggestInputTextbox(page, "PARAM1").focus();
+        getSuggestInputTextbox(page, "PARAM1").type("Grapef");
+        // Close suggestion box and run restriction check
+        getSuggestInputTextbox(page, "PARAM1").type(KeyboardEvent.DOM_VK_ESCAPE);
+        assertNotHasClass(getSuggestInputContainer(page, "PARAM1"), "suggesting");
+        assertNotDisplays(getSuggestInputChoicesBlock(page, "PARAM1"));
+        assertThat(
+            getSuggestInputTextbox(page, "PARAM1").getValueAttribute(),
+            is(equalTo("Grapef"))
+        );
+        assertHasClass(getSuggestInputContainer(page, "PARAM1"), "restriction-error");
+
+        clickSubmit(page);
+
+        j.waitUntilNoActivity();
+        assertThat(
+            p.getLastBuild(),
+            is(nullValue())
+        );
+    }
 }

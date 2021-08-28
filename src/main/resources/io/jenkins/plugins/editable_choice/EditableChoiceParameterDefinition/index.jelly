@@ -34,7 +34,7 @@ THE SOFTWARE.
       <mylib:suggestInput
         class="setting-input"
         name="value"
-        value="${it.defaultParameterValue.value}"
+        value="${it.createDefaultValue()}"
         items="${it.choices}"
         restrict="${it.restrict}"
         filterConfig="${it.filterConfig}"

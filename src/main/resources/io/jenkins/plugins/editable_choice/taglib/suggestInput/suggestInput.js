@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     this.select(null);
+    this.checkRestriction();
     this.container.classList.remove('suggesting');
   };
 

@@ -262,25 +262,33 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
     }
 
     /**
-     * {@inheritDoc}
+     * @return the default value. the top most value if not configured.
      */
     @CheckForNull
-    public ParameterValue getDefaultParameterValue() {
+    public String createDefaultValue() {
         final String defaultValue = getDefaultValue();
         if (defaultValue != null) {
-            return createValueCommon(new StringParameterValue(
-                getName(),
-                defaultValue,
-                getDescription())
-            );
+            return defaultValue;
         }
         final List<String> choices = getChoices();
         if (choices.size() <= 0) {
             return null;
         }
+        return choices.get(0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @CheckForNull
+    public ParameterValue getDefaultParameterValue() {
+        final String defaultValue = createDefaultValue();
+        if (defaultValue == null) {
+            return null;
+        }
         return createValueCommon(new StringParameterValue(
             getName(),
-            choices.get(0),
+            defaultValue,
             getDescription()
         ));
     }
