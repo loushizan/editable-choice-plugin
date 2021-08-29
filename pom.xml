@@ -86,6 +86,12 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <id>ikedam</id>
+            <name>IKEDA Yasuyuki</name>
+        </developer>
+    </developers>
     <scm>
         <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
