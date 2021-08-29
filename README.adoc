@@ -1,28 +1,94 @@
-# editable-choice
+= Editable Choice plugin
 
-## Introduction
+:sectanchors:
 
-TODO Describe what your plugin does here
+:toc:
 
-## Getting started
+== Introduction
 
-TODO Tell users how to configure your plugin here, include screenshots, pipeline examples and 
-configuration-as-code examples.
+Editable Choice plugin is a https://www.jenkins.io/[Jenkins] plugin providing editable choice parameter feature,
+that is, you can select a value from choices or you can input any value even not in choices.
 
-## Issues
+== Getting started
 
-TODO Decide where you're going to host your issues, the default is Jenkins JIRA, but you can also enable GitHub issues,
-If you use GitHub issues there's no need for this section; else add the following line:
+You can use Editable Choice in your job just like built-in choice paraemters:
 
-Report issues and enhancements in the [Jenkins issue tracker](https://issues.jenkins-ci.org/).
+[source,groovy]
+----
+pipeline {
+  agent any
+  parameters {
+    editableChoice(
+      name: 'PARAM1',
+      choices: ['Apple', 'Grape', 'Orange'],
+    )
+  }
+  stages {
+    stage('build') {
+      steps {
+        echo "PARAM1=${params.PARAM1}"
+       }
+    }
+  }
+}
+----
 
-## Contributing
+You can enter a parameter value in a build page:
 
-TODO review the default [CONTRIBUTING](https://github.com/jenkinsci/.github/blob/master/CONTRIBUTING.md) file and make sure it is appropriate for your plugin, if not then add your own one adapted from the base file
+#image:images/buildpage.png[Build page]#
 
-Refer to our [contribution guidelines](https://github.com/jenkinsci/.github/blob/master/CONTRIBUTING.md)
+You can also configure it for GUI-based jobs like freestyle projects:
 
-## LICENSE
+#image:images/jobconfiguration.png[Job configuration]#
 
-Licensed under MIT, see [LICENSE](LICENSE.md)
+== Pipeline syntaxes
 
+Full pipeline example:
+
+```
+editableChoice(
+  name: 'PARAM1',
+  description: 'Choose your favorite fruit`
+  choices: ['Apple', 'Grape', 'Orange'],
+  defaultValue: 'Grape',
+  restrict: true,
+  filterConfig: filterConfig(prefix: true, caseInsensitive: true),
+)
+
+```
+
+[cols=",,,",options="header",]
+|===
+|parameter   |type            |required|description
+|name        |string          |yes     |The name of the parameter
+|description |string          |        |The description for the parameter
+|choices     |list of strings |yes     |Choices
+|defaultValue|string          |        |The initial value. Uses the top most value if not specified.
+|restrict    |boolean         |        |Restrict the input value to be a value in choices. Otherwise, you cannot submit the build.
+|filterConfig|filterConfig    |        |Display only choices matching with current input. The choice behaves like suggestions.
+|===
+
+parameters for `+filterConfig+`:
+
+[cols=",,,",options="header",]
+|===
+|parameter      |type   |required|description
+|prefix         |boolean|        |Match the input only with prefix of choices
+|caseInsensitive|boolean|        |Match in case insensitive
+|===
+
+== Issues
+
+Report issues and enhancements in the https://issues.jenkins-ci.org/[Jenkins issue tracker].
+
+== Changelog
+
+Available in https://github.com/jenkinsci/editable-choice-plugin/releases[GitHub Release page].
+
+== Contributing
+
+Refer to our https://github.com/jenkinsci/.github/blob/master/CONTRIBUTING.md[contribution guidelines].
+
+== LICENSE
+
+Licensed under MIT, see link:LICENSE.md[LICENSE].
