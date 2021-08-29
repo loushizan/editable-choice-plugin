@@ -66,20 +66,20 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * ctor.
      *
      * @param name the name of the parameter
-     * @param description the description of the parameter
      */
     @DataBoundConstructor
-    public EditableChoiceParameterDefinition(@NonNull final String name, @CheckForNull final String description) {
-        super(name, description);
+    public EditableChoiceParameterDefinition(@NonNull final String name) {
+        super(name);
     }
 
+
     /**
-     * ctor.
-     *
-     * @param name the name of the parameter
+     * @param description the description
+     * @return this instance
      */
-    public EditableChoiceParameterDefinition(@NonNull final String name) {
-        this(name, null);
+    public EditableChoiceParameterDefinition withDescription(@CheckForNull final String description) {
+        setDescription(description);
+        return this;
     }
 
     /**

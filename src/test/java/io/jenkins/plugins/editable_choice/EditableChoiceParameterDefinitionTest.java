@@ -81,7 +81,8 @@ public class EditableChoiceParameterDefinitionTest {
     public void configFull1() throws Exception {
         final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
-            new EditableChoiceParameterDefinition("PARAM1", "description1\ndescription2")
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withDescription("description1\ndescription2")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("Grape").withRestrict(true)
                 .withFilterConfig(
@@ -98,7 +99,8 @@ public class EditableChoiceParameterDefinitionTest {
     public void configFull2() throws Exception {
         final FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new ParametersDefinitionProperty(
-            new EditableChoiceParameterDefinition("PARAM1", "description1\ndescription2")
+            new EditableChoiceParameterDefinition("PARAM1")
+                .withDescription("description1\ndescription2")
                 .withChoices(Arrays.asList("Apple", "Grape", "Orange"))
                 .withDefaultValue("")
                 .withRestrict(false)
