@@ -177,7 +177,7 @@ public class EditableChoiceParameterDefinition extends SimpleParameterDefinition
      * Set the default value with {@link DefaultValue}.
      *
      * Only for used with &lt;f:optionalBlock&gt;.
-     * Use {@link #setDefaultValue()} instead.
+     * Use {@link #setDefaultValue(String)} instead.
      *
      * @param defaultValue the default value with {@link DefaultValue}
      */
