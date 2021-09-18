@@ -1,2 +1,1 @@
 _extends: .github
-tag-template: editable-choice-$NEXT_MINOR_VERSION
