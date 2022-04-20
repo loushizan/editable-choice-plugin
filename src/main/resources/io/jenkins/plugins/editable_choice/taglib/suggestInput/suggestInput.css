@@ -13,6 +13,7 @@
 
 .editable-choice-suggest .editable-choice-suggest-choices-block {
   position: relative;
+  z-index: 1;
 }
 
 .editable-choice-suggest .editable-choice-suggest-choices {
